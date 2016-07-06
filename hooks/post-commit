@@ -1,0 +1,11 @@
+#!/usr/bin/env sh
+export HOOK_NAME="post-to-trello"
+export HOOK_ARGS=$@
+BASEDIR=$(dirname $0)
+echo $BASEDIR
+export PATH="/usr/local/bin:$PATH"
+# export NODE_PATH="/usr/local/lib/node_modules:$PATH"
+# For Sabayon NodeJS:
+export NODE_PATH="/usr/lib/node_modules:$PATH"
+
+"${BASEDIR}"/post-to-trello
