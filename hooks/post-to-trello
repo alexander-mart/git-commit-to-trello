@@ -16,48 +16,54 @@ var git = spawn('git', ['log' , '-1' , 'HEAD']);
 var data = "";
 
 git.stdout.on('data',function(d){
-  data += d;
+    data += d;
+    setTimeout(trello_comment, 100);
 });
 
-git.on('exit', function(){
-  var m = data.match(/#\s?[0-9]+/g);
-  if(!m){
-    // JS Regex is stupid
-    m = data.match(/#[0-9]+/g);
-  }
+function trello_comment(){
 
-  var merge = data.match(/Merge/i);
-  if(merge){
-    console.log('Ignoring merge commit');
-    return;
-  }
-  
-  if(m){
-    var commit = data.match(/commit\s+(.+)/i)[1];
-    var commit_link = repo_link + "/commit/" + commit;
-    var author = data.match(/author:\s+([^<]+)/i)[1];
-    var date = data.match(/date:\s+(.+)/i)[1];  
-    var lines = data.split('\n');
-    var msg = "";
-    for(var i = 4;i < lines.length;i++){
-		  msg += lines[i].trim() + "\n";
+    var m = data.match(/#\s?[0-9]+/g);
+    if(!m){
+        // JS Regex is stupid
+        m = data.match(/#[0-9]+/g);
     }
-    var cardNumber = m[0].replace(/#\s?/g, '').trim();
-    console.log("CardNumber : " + cardNumber);
-    //get card
-    get_card(board_id, cardNumber,function(err, data){
-      if(err) warn("[ERROR] Cannot find card matching ID " + cardNumber);
-      else{
-	      var text = 'Commit by : '+ author + '\nDate : ' + date + '\nCommit : ['+ commit + '](' + commit_link + ')\nMessage : ' + msg 
-	      add_comment(data['id'], text, function (err,data){
-	        if(err) throw err;
-	        else info('Submit message for ' + cardNumber + " : \n" + data.data.text);
-	      });
-      }
-    });
-  }else{
-    console.log('No trello cards mentioned');
-  }
+
+    var merge = data.match(/Merge/i);
+    if(merge){
+        console.log('Ignoring merge commit');
+        return;
+    }
+
+    if(m){
+        var commit = data.match(/commit\s+(.+)/i)[1];
+        var commit_link = repo_link + "/commit/" + commit;
+        var author = data.match(/author:\s+([^<]+)/i)[1];
+        var date = data.match(/date:\s+(.+)/i)[1];
+        var lines = data.split('\n');
+        var msg = "";
+        for(var i = 4;i < lines.length;i++){
+            msg += lines[i].trim() + "\n";
+        }
+        var cardNumber = m[0].replace(/#\s?/g, '').trim();
+        console.log("CardNumber : " + cardNumber);
+        //get card
+        get_card(board_id, cardNumber,function(err, data){
+            if(err) warn("[ERROR] Cannot find card matching ID " + cardNumber);
+            else{
+                var text = 'Commit by: '+ author + '\nDate: ' + date + '\nCommit: ['+ commit + '](' + commit_link + ')\nMessage: ' + msg
+                add_comment(data['id'], text, function (err,data){
+                    if(err) throw err;
+                    else info('Submit message for ' + cardNumber + ": \n" + data.data.text);
+                });
+            }
+        });
+    }else{
+        console.log('No trello cards mentioned');
+    }
+}
+
+git.on('exit', function(){
+    //
 });
 
 var partition = "***************************************************************************";
@@ -96,3 +102,4 @@ function get_cards(list_id, fun){
   fun = fun || logfun;
   t.get("/1/lists/"+list_id+"/cards", {fields: "idList,closed,name"}, fun)
 }
+
