@@ -1,4 +1,4 @@
-# Git commit to Trello
+# Git commit to Trello card comment
 Connect GitLab to Trello. Now anytime you mention a card number in a commit message like this : “#44 Some message”. Your comment should appear on your card.
 
 Original: http://joelherber.com/connect-gitlab-to-trello/
